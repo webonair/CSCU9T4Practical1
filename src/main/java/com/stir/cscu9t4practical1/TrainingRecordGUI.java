@@ -27,6 +27,7 @@ public class TrainingRecordGUI extends JFrame implements ActionListener {
     private JLabel labdist = new JLabel(" Distance (km):");
     private JButton addR = new JButton("Add");
     private JButton lookUpByDate = new JButton("Look Up");
+    private JButton FindAllByDate = new JButton("Find All By Date");
 
     private TrainingRecord myAthletes = new TrainingRecord();
 
@@ -68,6 +69,8 @@ public class TrainingRecordGUI extends JFrame implements ActionListener {
         addR.addActionListener(this);
         add(lookUpByDate);
         lookUpByDate.addActionListener(this);
+        add(FindAllByDate);
+        FindAllByDate.addActionListener(this);
         add(outputArea);
         outputArea.setEditable(false);
         setSize(720, 200);
@@ -81,11 +84,11 @@ public class TrainingRecordGUI extends JFrame implements ActionListener {
 
     // listen for and respond to GUI events 
     public void actionPerformed(ActionEvent event) {
-        String message = "";
+        String message = "Not implemented yet";
         if (event.getSource() == addR) {
             message = addEntry("generic");
         }
-        if (event.getSource() == lookUpByDate) {
+        if (event.getSource() == lookUpByDate || event.getSource() == FindAllByDate) {
             message = lookupEntry();
         }
         outputArea.setText(message);
@@ -113,7 +116,11 @@ public class TrainingRecordGUI extends JFrame implements ActionListener {
         int d = Integer.parseInt(day.getText());
         int y = Integer.parseInt(year.getText());
         outputArea.setText("looking up record ...");
-        String message = myAthletes.lookupEntry(d, m, y);
+        
+        //I'm using my own method, lookupEntries, which returns a string with multiple records.
+        //lookupEntry is still available in TrainingRecord.
+        String message;
+        message = myAthletes.lookupEntries(m, d, y);
         return message;
     }
 
