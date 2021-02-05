@@ -27,7 +27,7 @@ public class TrainingRecordGUI extends JFrame implements ActionListener {
     private JLabel labdist = new JLabel(" Distance (km):");
     
     // Subclass attributes.
-    /* I know there's probably a more aesthetically pleasing and robust way
+    /* I know there are more aesthetically pleasing and robust ways
        to deal with this problem, but I'm moving house soon--let's say I made
        an executive decision to prioritize an early software release. */
     private JTextField cycsur = new JTextField(4);
@@ -41,13 +41,14 @@ public class TrainingRecordGUI extends JFrame implements ActionListener {
     private JLabel labsprrec = new JLabel(" Recovery:");
     private JLabel labswmven = new JLabel(" [Swimming] venue:");
     
-    private JButton addR = new JButton("Add run");
-    private JButton addC = new JButton("Add cycle");
-    private JButton addSp = new JButton("Add sprint");
-    private JButton addSw = new JButton("Add swim");
+    // Using an uneditable combo box rather than a menu or series of buttons.
+    private JButton addA = new JButton("Add activity");
+    private String[] activity = {"Running","Cycling","Sprinting","Swimming"};
+    JComboBox actChoice = new JComboBox(activity);
     
     private JButton lookUpByDate = new JButton("Look Up");
     private JButton FindAllByDate = new JButton("Find All By Date");
+    private JButton removeByDate = new JButton("Remove");
 
     private TrainingRecord myAthletes = new TrainingRecord();
 
@@ -61,6 +62,18 @@ public class TrainingRecordGUI extends JFrame implements ActionListener {
     public TrainingRecordGUI() {
         super("Training Record");
         setLayout(new FlowLayout());
+        
+        add(actChoice);
+        actChoice.setSelectedItem("Running");
+        actChoice.addActionListener(this);
+        
+        // Gluing over a glitch where every field is visible on launch, even though "Running" is selected.
+        labcycsur.setVisible(false); cycsur.setVisible(false);
+        labcyctmpo.setVisible(false); cyctmpo.setVisible(false);
+        labsprrec.setVisible(false); sprrec.setVisible(false);
+        labsprreps.setVisible(false); sprreps.setVisible(false);
+        labswmven.setVisible(false); swmven.setVisible(false);
+        
         add(labn);
         add(name);
         name.setEditable(true);
@@ -104,20 +117,16 @@ public class TrainingRecordGUI extends JFrame implements ActionListener {
         swmven.setEditable(true);
         
         // Buttons
-        add(addR);
-        addR.addActionListener(this);
-        add(addC);
-        addC.addActionListener(this);
-        add(addSp);
-        addSp.addActionListener(this);
-        add(addSw);
-        addSw.addActionListener(this);
-        
+        add(addA);
+        addA.addActionListener(this);   
         add(lookUpByDate);
         lookUpByDate.addActionListener(this);
         add(FindAllByDate);
         FindAllByDate.addActionListener(this);
+        add(removeByDate);
+        removeByDate.addActionListener(this);
         add(outputArea);
+        
         outputArea.setEditable(false);
         setSize(720, 200);
         setVisible(true);
@@ -127,29 +136,59 @@ public class TrainingRecordGUI extends JFrame implements ActionListener {
 
     // listen for and respond to GUI events 
     public void actionPerformed(ActionEvent event) {
-        String message = "Not implemented yet";
+        String message = "";
         
-        // This try/catch statement protects the user from crashes after entering non-numeric or null values.
+        // Changing the visible fields based on what the activity is...
+        if (actChoice.getSelectedItem() == "Cycling") {
+            labcycsur.setVisible(true);
+            cycsur.setVisible(true);
+            labcyctmpo.setVisible(true);
+            cyctmpo.setVisible(true);
+        }
+        if (actChoice.getSelectedItem() == "Sprinting") {
+            labsprrec.setVisible(true);
+            sprrec.setVisible(true);
+            labsprreps.setVisible(true);
+            sprreps.setVisible(true);
+        }
+        if (actChoice.getSelectedItem() == "Swimming") {
+            labswmven.setVisible(true);
+            swmven.setVisible(true);
+        }
+        
+        // ... and what the activity isn't.
+        if (actChoice.getSelectedItem() != "Cycling") {
+            labcycsur.setVisible(false);
+            cycsur.setVisible(false);
+            labcyctmpo.setVisible(false);
+            cyctmpo.setVisible(false);
+        }
+        if (actChoice.getSelectedItem() != "Sprinting") {
+            labsprrec.setVisible(false);
+            sprrec.setVisible(false);
+            labsprreps.setVisible(false);
+            sprreps.setVisible(false);
+        }
+        if (actChoice.getSelectedItem() != "Swimming") {
+            labswmven.setVisible(false);
+            swmven.setVisible(false);
+        }
+        
+        // This try/catch statement protects the user from crashes after entering non-int or null values.
         // The user can try again afterwards.
         try {
-            if (event.getSource() == addR) {
-                
-                message = addEntry("generic");
-            }
-            if (event.getSource() == addC) {
-                message = addEntry("cycling");
-            }
-            if (event.getSource() == addSp) {
-                message = addEntry("sprinting");
-            }
-            if (event.getSource() == addSw) {
-                message = addEntry("swimming");
+            if (event.getSource() == addA) {
+                String activityChoice = actChoice.getSelectedItem().toString();
+                message = addEntry(activityChoice);
             }
             if (event.getSource() == lookUpByDate) {
                 message = lookupEntry();
             }
             if (event.getSource() == FindAllByDate) {
                 message = lookupEntries();
+            }
+            if (event.getSource() == removeByDate) {
+                message = remove();
             }
         } catch (Exception NumberFormatException) {
             message = "Error: have you filled in the correct date?  Have you filled in the details of the correct sport?";
@@ -174,20 +213,20 @@ public class TrainingRecordGUI extends JFrame implements ActionListener {
         // Declaring the subclasses' attributes here protects us from exceptions:
         // there is no need to fill in every box, only the relevant ones.
         
-        if (what.equals("running")) {
+        if (what.equals("Running")) {
             Entry e = new Entry(n, d, m, y, h, mm, s, km);
             myAthletes.addEntry(e);
-        } else if (what.equals("cycling")) {
+        } else if (what.equals("Cycling")) {
             String surface = cycsur.getText();
             String tempo = cyctmpo.getText();
             Entry e = new CycleEntry(n, d, m, y, h, mm, s, km, surface, tempo);
             myAthletes.addEntry(e);
-        } else if (what.equals("sprinting")) {
+        } else if (what.equals("Sprinting")) {
             int reps = Integer.parseInt(sprreps.getText());
             int recovery = Integer.parseInt(sprrec.getText());
             Entry e = new SprintEntry(n, d, m, y, h, mm, s, km, reps, recovery);
             myAthletes.addEntry(e);
-        } else if (what.equals("swimming")) {
+        } else if (what.equals("Swimming")) {
             String venue = swmven.getText();
             Entry e = new SwimEntry(n, d, m, y, h, mm, s, km, venue);
             myAthletes.addEntry(e);
@@ -219,10 +258,19 @@ public class TrainingRecordGUI extends JFrame implements ActionListener {
 
         //I'm using my own method, lookupEntries, which returns a string with multiple records.
         //lookupEntry is still available in TrainingRecord.
-        String message;
-        message = myAthletes.lookupEntries(m, d, y);
+        String message = myAthletes.lookupEntries(m, d, y);
         return message;
 
+    }
+    
+    public String remove() {
+        int m = Integer.parseInt(month.getText());
+        int d = Integer.parseInt(day.getText());
+        int y = Integer.parseInt(year.getText());
+        outputArea.setText("Looking up records to remove ...");
+        
+        String message = myAthletes.clearEntry(m,d,y);
+        return message;
     }
 
     public void blankDisplay() {
@@ -234,6 +282,12 @@ public class TrainingRecordGUI extends JFrame implements ActionListener {
         mins.setText("");
         secs.setText("");
         dist.setText("");
+        
+        cycsur.setText("");
+        cyctmpo.setText("");
+        sprreps.setText("");
+        sprrec.setText("");
+        swmven.setText("");
 
     }// blankDisplay
     // Fills the input fields on the display for testing purposes only

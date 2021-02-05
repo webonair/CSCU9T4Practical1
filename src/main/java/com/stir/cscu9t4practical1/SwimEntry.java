@@ -8,8 +8,12 @@ public class SwimEntry extends Entry {
   public SwimEntry (String n, int d, int m, int y, int h, int min, int s, float dist, String ven) {
       
     super(n,d,m,y,h,min,s,dist);
-
-    venue = ven;
+    
+    if (ven.equals("pool")) {
+        venue = "in a pool";
+    } else {
+        venue = ven;
+    }
     
   } //constructor
 
